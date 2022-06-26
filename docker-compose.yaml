@@ -1,0 +1,105 @@
+version: '3.4'
+
+services:
+  traefik:
+    image: traefik:v2.7.1
+# traefik serves on default http https ports
+# this allows natural urls like https://app.localhost/
+    ports:
+      - "80:80"
+      - "443:443"
+# setup can be easily transformed into swarm deploy
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+        preferences:
+          - spread: node.id
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik/configuration:/configuration/"
+    restart: always
+# if traefik supposed to serve real swarm cluster, peram should be specified
+#       --docker.swarmmode
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.watch=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/configuration/"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+#      - "--entrypoints.mongo.address=:27017"
+#      - "--entrypoints.postgres.address=:5432"
+      - "--log.level=DEBUG"
+      - "--accessLog"
+      - "--api"
+      - "--metrics"
+      - "--metrics.prometheus"
+      - "--providers.docker.network=traefik-public"
+    networks:
+      - default
+      - traefik-public
+# traefik configuration via labels
+# expose traefik dashboard under address https://traefik.localhost
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.tls=true"
+
+# docker management UI to be exposed under
+# https://docker.localhost
+  portainer:
+    image: portainer/portainer-ce:2.13.1
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`docker.localhost`)"
+      - "traefik.http.routers.portainer.entrypoints=web"
+      - "traefik.http.routers.portainer-secure.rule=Host(`docker.localhost`)"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.http.routers.portainer-secure.entrypoints=websecure"
+      - "traefik.http.routers.portainer-secure.tls=true"
+
+  whoami:
+    image: "traefik/whoami"
+    container_name: "whoami"
+    networks:
+#      - app
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami-secure.entrypoints=websecure"
+      - "traefik.http.routers.whoami-secure.rule=Host(`whoami.localhost`)"
+      - "traefik.http.routers.whoami-secure.tls=true"
+
+  mail:
+    image: "maildev/maildev"
+    container_name: "mail"
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    networks:
+      #      - app
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mail-secure.entrypoints=websecure"
+      - "traefik.http.routers.mail-secure.rule=Host(`mail.localhost`)"
+      - "traefik.http.routers.mail-secure.tls=true"
+      - "traefik.http.services.mail-secure.loadbalancer.server.port=1080"
+
+volumes:
+  portainer_data:
+
+networks:
+  traefik-public:
+    external: true

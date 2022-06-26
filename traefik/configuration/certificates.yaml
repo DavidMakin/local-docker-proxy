@@ -1,0 +1,18 @@
+# Dynamic configuration
+# in configuration/certificates.yaml
+tls:
+  certificates:
+    # first certificate
+    - certFile: "/configuration/ssl-cert-snakeoil.pem"
+      keyFile: "/configuration/ssl-cert-snakeoil.key"
+
+#    # second certificate
+#    - certFile: /path/to/other.cert
+#      keyFile: /path/to/other.key
+
+# and so on
+  stores:
+    default:
+      defaultCertificate:
+        certFile: "/configuration/ssl-cert-snakeoil.pem"
+        keyFile: "/configuration/ssl-cert-snakeoil.key"
