@@ -8,6 +8,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "3306:3306"
 # setup can be easily transformed into swarm deploy
     deploy:
       replicas: 1
@@ -32,7 +33,7 @@ services:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
 #      - "--entrypoints.mongo.address=:27017"
-#      - "--entrypoints.postgres.address=:5432"
+      - "--entrypoints.mysql.address=:3306"
       - "--log.level=DEBUG"
       - "--accessLog"
       - "--api"
