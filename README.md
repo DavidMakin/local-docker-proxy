@@ -29,9 +29,15 @@ Now run your local docker-compose and add an entry to your /etc/hosts file.
 2. Add the network `traefik-public` to the networks section of each container you want traefik to work with
    1. ````yaml
       networks:
-            - helix-network
-            - traefik-public
-3. Add various info via labels under the container
+        - helix-network
+        - traefik-public
+3. and to the networks part in the overall docker-compose.yaml
+   1. ````yaml
+       networks:
+         helix-network:
+         traefik-public:
+           external: true
+4. Add various info via labels under the container
    1. The name part of `traefik.http.routers.<UNIQUE-NAME>-secure.tls` must be unique across all containers
       ````yaml
       labels:
