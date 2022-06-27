@@ -22,7 +22,10 @@ This will give you UIs for the following useful apps
 * https://mail.localhost/#/ - A mailcatcher UI
 * https://whoami.localhost/ - Return info about the browser calling the page
 
-Now run your local docker-compose and add an entry to your /etc/hosts file.
+Now run `docker-compose up` in your development repo and add an entry to your /etc/hosts file.
+````
+127.0.0.1   development.hoostname.com
+````
 
 ## How to get your docker containers to use this?
 1. Remove manual port mappings for any http or https ports
@@ -39,14 +42,15 @@ Now run your local docker-compose and add an entry to your /etc/hosts file.
            external: true
 4. Add various info via labels under the container
    1. The name part of `traefik.http.routers.<UNIQUE-NAME>-secure.tls` must be unique across all containers
+      Replace `UNIQUE-NAME` and `HOSTNAME`
       ````yaml
       labels:
         - "traefik.enable=true"
-        #- "traefik.http.routers.helix-nestjs.rule=Host(`nestjs.local.helix.apollo.audio`)" # only needed if it must have http
-        #- "traefik.http.routers.helix-nestjs.entrypoints=web" # only needed if it must have http
-        - "traefik.http.routers.helix-nestjs-secure.entrypoints=websecure"
-        - "traefik.http.routers.helix-nestjs-secure.rule=Host(`nestjs.local.helix.apollo.audio`)"
-        - "traefik.http.routers.helix-nestjs-secure.tls=true"
+      #  - "traefik.http.routers.<UNIQUE-NAME>-apache.rule=Host(`<HOSTNAME>`)" # only needed if it must have http
+      #  - "traefik.http.routers.<UNIQUE-NAME>-apache.entrypoints=web" # only needed if it must have http
+        - "traefik.http.routers.<UNIQUE-NAME>-apache-secure.entrypoints=websecure"
+        - "traefik.http.routers.<UNIQUE-NAME>-apache-secure.rule=Host(`<HOSTNAME>`)"
+        - "traefik.http.routers.<UNIQUE-NAME>-apache-secure.tls=true"
       ````
       
 ## TODO
