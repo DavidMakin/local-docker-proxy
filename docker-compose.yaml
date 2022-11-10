@@ -98,6 +98,22 @@ services:
       - "traefik.http.routers.mail-secure.tls=true"
       - "traefik.http.services.mail-secure.loadbalancer.server.port=1080"
 
+  redis:
+    image: "redis/redis-stack"
+    container_name: "redis"
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redis-secure.entrypoints=websecure"
+      - "traefik.http.routers.redis-secure.rule=Host(`redis.localhost`)"
+      - "traefik.http.routers.redis-secure.tls=true"
+      - "traefik.http.services.redis-secure.loadbalancer.server.port=8001"
+
+
 volumes:
   portainer_data:
 
